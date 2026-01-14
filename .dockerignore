@@ -1,0 +1,52 @@
+
+# Dépendances (on les installe dans le container)
+node_modules
+
+# Build local
+dist
+tmp
+.nx
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environnement (JAMAIS inclure les secrets !)
+.env
+.env.*
+!.env.example
+
+# Tests
+coverage
+*.spec.ts
+*.test.ts
+e2e
+
+# Documentation
+*.md
+!README.md
+docs
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Docker (évite la récursion)
+Dockerfile*
+docker-compose*
+.docker
