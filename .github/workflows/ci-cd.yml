@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     env:
-      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/tp-ci-cd
+      IMAGE_NAME: ghcr.io/les-petits-foufou/tp-ci-cd
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
     steps:
