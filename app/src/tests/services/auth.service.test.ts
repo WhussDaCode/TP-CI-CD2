@@ -1,15 +1,20 @@
 import * as bcrypt from 'bcryptjs';
 import { createUser, getCurrentUser, login, updateUser } from '../../app/routes/auth/auth.service';
+// On garde l'import pour l'utiliser dans les tests (Given/Then)
 import prismaMock from '../prisma-mock';
 
 // ============================================================================
-// FIX PATH : Le client est dans src/prisma, pas src/app/prisma
+// FIX HOISTING : On utilise 'require' DANS le mock pour éviter le ReferenceError
 // ============================================================================
-jest.mock('../../prisma/prisma-client', () => ({
-  __esModule: true,
-  default: prismaMock, 
-  prisma: prismaMock
-}));
+jest.mock('../../prisma/prisma-client', () => {
+  // On charge le mock dynamiquement ici pour contourner l'ordre d'initialisation
+  const { default: mock } = require('../prisma-mock');
+  return {
+    __esModule: true,
+    default: mock,
+    prisma: mock
+  };
+});
 
 describe('AuthService', () => {
   beforeEach(() => {
