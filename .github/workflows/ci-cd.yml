@@ -102,6 +102,11 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
+    env:
+      IMAGE_NAME: ghcr.io/les-petits-foufou/tp-ci-cd
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
   
@@ -112,25 +117,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
   
-      - name: Deploy Application
+      - name: Deploy
         run: |
-          # Récupérer la dernière image
-          docker compose -f docker/docker-compose.yml pull \
-            -e IMAGE_NAME=ghcr.io/les-petits-foufou/tp-ci-cd \
-            -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            -e NODE_ENV=production
-  
-          # Arrêter et supprimer les containers existants
-          docker compose -f docker/docker-compose.yml down \
-            -e IMAGE_NAME=ghcr.io/les-petits-foufou/tp-ci-cd \
-            -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            -e NODE_ENV=production
-  
-          # Démarrer les containers en arrière-plan
-          docker compose -f docker/docker-compose.yml up -d \
-            -e IMAGE_NAME=ghcr.io/les-petits-foufou/tp-ci-cd \
-            -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            -e NODE_ENV=production
+          docker compose -f docker/docker-compose.yml pull
+          docker compose -f docker/docker-compose.yml down
+          docker compose -f docker/docker-compose.yml up -d
