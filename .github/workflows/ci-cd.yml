@@ -1,6 +1,5 @@
 name: CI/CD Pipeline
 
-# [cite_start]Déclencheurs : Push et Pull Request sur master [cite: 65]
 on:
   push:
     branches: [ master ]
@@ -8,17 +7,15 @@ on:
     branches: [ master ]
 
 env:
-  # Nom de l'image (format: ghcr.io/user/repo)
   IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
-  # [cite_start]JOB 1 : QUALITÉ DU CODE (Tests & Lint) [cite: 71]
   quality:
     name: Code Quality Check
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./app  # IMPORTANT : Le code est dans app/
+        working-directory: ./app
     
     steps:
       - name: Checkout code
@@ -32,25 +29,21 @@ jobs:
           cache-dependency-path: app/package-lock.json
 
       - name: Install Dependencies
-        # [cite_start]Installation propre des dépendances [cite: 67]
         run: npm ci
 
       - name: Run Linting
-        # [cite_start]Validation de la qualité du code [cite: 71]
         run: npm run lint --if-present
 
       - name: Run Unit Tests
-        # [cite_start]Exécution des tests unitaires [cite: 68]
         run: npm test --if-present
 
-  # JOB 2 : BUILD DOCKER & PUSH
   build-and-push:
     name: Build & Push Docker Image
-    [cite_start]needs: quality  # Attend que les tests soient OK [cite: 69]
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write  # Nécessaire pour pousser sur GHCR
+      packages: write
 
     steps:
       - name: Checkout code
@@ -63,21 +56,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            [cite_start]type=sha,format=long  # Tag avec le commit SHA [cite: 75]
-            [cite_start]type=raw,value=latest # Tag latest [cite: 75]
+            type=sha,format=long
+            type=raw,value=latest
 
       - name: Build and push Docker image
-        # [cite_start]Construction et push de l'image Docker [cite: 73, 74, 76]
         uses: docker/build-push-action@v5
         with:
-          context: .               # Contexte racine pour voir app/ et docker/
-          file: docker/Dockerfile  # Chemin du Dockerfile
+          context: .
+          file: docker/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
