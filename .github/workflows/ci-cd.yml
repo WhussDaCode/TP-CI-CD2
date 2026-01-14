@@ -16,10 +16,25 @@ jobs:
     defaults:
       run:
         working-directory: ./app
-    
-    # AJOUT : Variables pour éviter le crash de Prisma pendant les tests
+
+    # AJOUT 1 : Service PostgreSQL temporaire pour les tests
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: realworld
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
-      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/realworld"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/realworld?schema=public"
       JWT_SECRET: "super-secret-key-for-tests"
 
     steps:
@@ -36,9 +51,9 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       
-      # AJOUT : Indispensable pour que TypeScript reconnaisse Prisma
-      - name: Generate Prisma Client
-        run: npx prisma generate --schema=src/prisma/schema.prisma
+      # AJOUT 2 : Création de la structure de la base de données (Tables)
+      - name: Push Database Schema
+        run: npx prisma db push
 
       - name: Run Linting
         run: npm run lint --if-present
