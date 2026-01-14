@@ -1,10 +1,24 @@
-version: "3.8"
+deploy:
+  name: Deploy Application
+  needs: build-and-push
+  runs-on: ubuntu-latest
+  if: github.ref == 'refs/heads/master'
+  env:
+    IMAGE_NAME: ghcr.io/les-petits-foufou/tp-ci-cd
+    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  steps:
+    - uses: actions/checkout@v4
 
-services:
-  api:
-    image: ${IMAGE_NAME}:latest
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      JWT_SECRET: ${JWT_SECRET}
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy
+      run: |
+        docker compose -f docker/docker-compose.yml pull
+        docker compose -f docker/docker-compose.yml down
+        docker compose -f docker/docker-compose.yml up -d
