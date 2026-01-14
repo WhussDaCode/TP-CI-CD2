@@ -70,7 +70,7 @@ EXPOSE 3000
 
 # Healthcheck sur /api/tags (endpoint existant)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/tags || exit 1
+    CMD wget -q --spider http://localhost:3000/api/tags || exit 1
 
 # Commande de démarrage
 CMD ["node", "dist/api/main.js"]
