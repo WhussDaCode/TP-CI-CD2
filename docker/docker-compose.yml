@@ -1,77 +1,10 @@
-name: CI/CD Pipeline
+version: "3.8"
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
-
-jobs:
-  quality:
-    name: Code Quality Check
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        # On définit le dossier de travail par défaut pour toutes les commandes de ce job
-        working-directory: ./app
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          # On précise où est le lockfile
-          cache-dependency-path: app/package-lock.json
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Run Linting
-        run: npm run lint --if-present
-
-      - name: Run Unit Tests
-        run: npm test --if-present
-
-  build-and-push:
-    name: Build & Push Docker Image
-    needs: quality
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,format=long
-            type=raw,value=latest
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .               # Contexte racine (pour voir app/)
-          file: docker/Dockerfile  # Fichier déplacé dans docker/
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+services:
+  api:
+    image: ${IMAGE_NAME}:latest
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
