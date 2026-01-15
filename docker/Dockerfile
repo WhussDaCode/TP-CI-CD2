@@ -1,15 +1,13 @@
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM node:20-slim AS deps
 WORKDIR /app
-# CORRECTION ICI : On va chercher dans app/
 COPY app/package.json app/package-lock.json ./
 RUN npm ci
 
 # Stage 2: Builder
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-# CORRECTION ICI : On copie tout le contenu du dossier app/
 COPY app/ .
 
 # Génération du client Prisma
@@ -19,7 +17,7 @@ RUN npx prisma generate --schema=src/prisma/schema.prisma
 RUN npx nx build api --configuration=production
 
 # Stage 3: Production
-FROM node:20-alpine AS production
+FROM node:20-slim AS production
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -34,9 +32,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/src/prisma ./prisma
 
-# Permissions et démarrage
 RUN chown -R api:nodejs /app
 USER api
-EXPOSE 3000
 
+EXPOSE 3000
 CMD ["node", "dist/api/main.js"]
